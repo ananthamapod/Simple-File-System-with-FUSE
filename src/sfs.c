@@ -61,7 +61,7 @@ void *sfs_init(struct fuse_conn_info *conn)
     struct inode root_i_node;
 
     int uid = getuid();
-    int guid = getedid();
+    int guid = getegid();
     root_i_node.i_uid = uid;
     root_i_node.i_gid = guid;
 

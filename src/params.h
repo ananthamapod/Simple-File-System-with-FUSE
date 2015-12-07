@@ -23,7 +23,6 @@
 // maintain bbfs state in here
 #include <limits.h>
 #include <stdio.h>
-#include <list.h>
 
 
 #include "params.h"
