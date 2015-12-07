@@ -49,7 +49,7 @@
 void *sfs_init(struct fuse_conn_info *conn)
 {
 
-    sfs_state* state = SFS_DATA;
+    struct sfs_state* state = SFS_DATA;
     state->pid = getpid ();
     fprintf(stderr, "in bb-init\n");
     log_msg("\nsfs_init()\n");
@@ -308,7 +308,7 @@ int sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
         stat.st_mode = dir_entry->d_type << 12;
 
         // Not enough memory in the buffer, this should be very rare
-        if(filler(buf, dir_entry->d_name, &stat, 0) != 0) {
+        if(filler(buf, dir_entry->d_name, &stat, 0)) {
             log_msg("buffer full");
             retstat = -ENOMEM;
         }

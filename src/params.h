@@ -86,6 +86,7 @@ struct super_operations {
 struct sfs_state {
     FILE *logfile;
     char *diskfile;
+    pid_t pid;
 };
 #define SFS_DATA ((struct sfs_state *) fuse_get_context()->private_data)
 
