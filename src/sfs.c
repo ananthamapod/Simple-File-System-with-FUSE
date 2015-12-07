@@ -48,8 +48,9 @@
  */
 
  // Initialize global variables to fold the main file system
- inode i_node_array[]; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
- dir_list *root;       //root directory pointer Ananth this might need the word 'struct' infront of it - can you check please?
+ struct inode i_node_array[]; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
+ struct dir_list *root;     ////root directory pointer Ananth this might need the word 'struct' infront of it - can you check please?
+
 
 void *sfs_init(struct fuse_conn_info *conn)
 {
@@ -90,7 +91,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 		        log_msg("Cannot open file %s", file);
 	             }
     else {
-		        if (!fprintf(pidfile, "%d\n", state->pid)) {
+		        if (!fprintf(file, "%d\n", state->pid)) {
 			           log_msg("Can't write to pid %s",state->pid);
 		      }
 
@@ -154,6 +155,10 @@ int sfs_unlink(const char *path)
     int retstat = 0;
     log_msg("sfs_unlink(path=\"%s\")\n", path);
 
+    retstat = unlink(path);
+    if(retstat!=-1 || retstat < 0){
+      log_msg("This is the error: ", errno);
+    }
 
     return retstat;
 }
