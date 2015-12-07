@@ -48,11 +48,22 @@
  */
 void *sfs_init(struct fuse_conn_info *conn)
 {
+
     fprintf(stderr, "in bb-init\n");
     log_msg("\nsfs_init()\n");
     log_conn(conn);
     log_fuse_context(fuse_get_context());
+    disk_open((SFS_DATA)->diskfile);
 
+
+    struct inode root_i_node;
+
+    int uid = getuid();
+    int guid = getedid();
+    root_i_node.i_uid = uid;
+    root_i_node.i_gid = gid;
+
+    log_msg("Checking to see if this worked \n %d", root_i_node.i_uid);
     return SFS_DATA;
 }
 
@@ -367,9 +378,9 @@ int main(int argc, char *argv[])
     argv[argc-2] = argv[argc-1];
     argv[argc-1] = NULL;
     argc--;
-    
+
     sfs_data->logfile = log_open();
-    
+
     // turn over control to fuse
     fprintf(stderr, "about to call fuse_main, %s \n", sfs_data->diskfile);
     fuse_stat = fuse_main(argc, argv, &sfs_oper, sfs_data);
