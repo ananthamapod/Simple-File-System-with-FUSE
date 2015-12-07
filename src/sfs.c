@@ -49,7 +49,7 @@
 void *sfs_init(struct fuse_conn_info *conn)
 {
 
-    sfs_State* state = SFS_DATA;
+    sfs_state* state = SFS_DATA;
     state->pid = getpid ();
     fprintf(stderr, "in bb-init\n");
     log_msg("\nsfs_init()\n");
@@ -63,7 +63,7 @@ void *sfs_init(struct fuse_conn_info *conn)
     int uid = getuid();
     int guid = getedid();
     root_i_node.i_uid = uid;
-    root_i_node.i_gid = gid;
+    root_i_node.i_gid = guid;
 
     log_msg("Checking to see if this worked \n %d", root_i_node.i_uid);
     return SFS_DATA;
