@@ -48,7 +48,7 @@ struct inode {
         int   		            i_inode;              // i-node number
         uid_t                   i_uid;                // user_id of owner process - might need these for later
         gid_t                   i_gid;                // group_id of ownder process - might need these for later
-        unsigned long           i_file_zize_in_blocks;  //file size in blocks
+        unsigned long           i_file_size_in_blocks;  //file size in blocks
 
         struct super_block      *i_sb;               //which superblock it points to
 };
@@ -86,6 +86,7 @@ struct sfs_state {
     FILE *logfile;
     char *diskfile;
     pid_t pid;
+    char * pid_path;
 };
 #define SFS_DATA ((struct sfs_state *) fuse_get_context()->private_data)
 

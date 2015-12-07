@@ -60,13 +60,41 @@ void *sfs_init(struct fuse_conn_info *conn)
 
     struct inode root_i_node;
 
+    struct inode_bitmap Map_of_inode;
+    memset(&Map_of_inode,0,sizeOf(Map_of_inode));
+
+    struct data_bitmap Map_of_bitmap;
+    memset(&Map_of_bitmap,0,sizeOf(Map_of_bitmap));
+
     int uid = getuid();
     int guid = getegid();
     root_i_node.i_uid = uid;
     root_i_node.i_gid = guid;
+    root_i_node.i_file_size_in_blocks = 0;
+    root_i_node.i_node = 1; //Let's initialize the first i_node here
+
+
+
+
+    const char* path = state->pid_path;
+    FILE *file = fopen (path, "w");
+    fprintf(file, "This is testing for pidfile...\n");
+
+    //create tests for file
+    if (!file) {
+		        log_msg("Cannot open file %s", file);
+	             }
+    else {
+		        if (!fprintf(pidfile, "%d\n", state->pid)) {
+			           log_msg("Can't write to pid %s",state->pid);
+		      }
+
+    fclose(file);
+
+
 
     log_msg("Checking to see if this worked \n %d", root_i_node.i_uid);
-    return SFS_DATA;
+    return state;
 }
 
 /**
