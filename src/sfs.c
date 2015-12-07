@@ -46,6 +46,11 @@
  * Introduced in version 2.3
  * Changed in version 2.6
  */
+
+ // Initialize global variables to fold the main file system
+ inode i_node_array[]; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
+ dir_list *root;       //root directory pointer Ananth this might need the word 'struct' infront of it - can you check please?
+
 void *sfs_init(struct fuse_conn_info *conn)
 {
 
@@ -58,28 +63,28 @@ void *sfs_init(struct fuse_conn_info *conn)
     disk_open((SFS_DATA)->diskfile);
 
 
-    struct inode root_i_node;
 
-    struct inode_bitmap Map_of_inode;
-    memset(&Map_of_inode,0,sizeOf(Map_of_inode));
-
-    struct data_bitmap Map_of_bitmap;
-    memset(&Map_of_bitmap,0,sizeOf(Map_of_bitmap));
 
     int uid = getuid();
     int guid = getegid();
-    root_i_node.i_uid = uid;
-    root_i_node.i_gid = guid;
-    root_i_node.i_file_size_in_blocks = 0;
-    root_i_node.i_node = 1; //Let's initialize the first i_node here
 
+    //root_i_node.i_file_size_in_blocks = 0;
+    //root_i_node.i_node = 1; //Let's initialize the first i_node here
 
+    i_node_array = malloc(512 * sizeOf(struct inode)); //Ananth does this require a different way of initialization?
+    i_node_array[0].data = NULL;
+    i_node_array[0].i_uid = uid;
+    i_node_array[0].i_gid = guid;
 
+    root = (struct dir_list*) malloc(sizeOf(struct dir_list));
+    root->next = NULL;
+    root->type = 's'; //superblock
+    root->name = "/root";
+    root->offset = 0; //initialize the start offset
+    root->inode_index = 0;
 
     const char* path = state->pid_path;
     FILE *file = fopen (path, "w");
-    fprintf(file, "This is testing for pidfile...\n");
-
     //create tests for file
     if (!file) {
 		        log_msg("Cannot open file %s", file);
@@ -90,9 +95,6 @@ void *sfs_init(struct fuse_conn_info *conn)
 		      }
 
     fclose(file);
-
-
-
     log_msg("Checking to see if this worked \n %d", root_i_node.i_uid);
     return state;
 }

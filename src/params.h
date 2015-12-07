@@ -43,14 +43,16 @@
 #include "log.h"
 
 struct inode {
+        char*                   data;                             //data of the inode
+        char                    type;                                //type of inode
         //struct list_head        i_list;              //list of i-nodes
         //struct list_head        i_data_entry;            //list of data entries [essentially the whole array]
-        int   		            i_inode;              // i-node number
+        int   		              i_inode;              // i-node number
         uid_t                   i_uid;                // user_id of owner process - might need these for later
         gid_t                   i_gid;                // group_id of ownder process - might need these for later
         unsigned long           i_file_size_in_blocks;  //file size in blocks
 
-        struct super_block      *i_sb;               //which superblock it points to
+        struct dir_list         *i_sb;               //pointer to array of references to traverse a path
 };
 
 struct inode_bitmap{
@@ -65,23 +67,45 @@ struct inodes_table {
 };
 
 //This is the first block of the filysystem (considering a file system is just a really long array..which it actually is in memory)
-struct super_block{
-	int 						          total_i_nodes;
-	int 						          total_data_entries; // total data entries
-	unsigned long 				    sb_blocksize; 		// in bytes
-	//struct super_operations 	s_op;  			/* superblock methods */
-};
+// struct super_block{
+// 	int 						          total_i_nodes;
+// 	int 						          total_data_entries; // total data entries
+// 	unsigned long 				    sb_blocksize; 		// in bytes
+// 	//struct super_operations 	s_op;  			/* superblock methods */
+// };
 
 // Linux kernel super block operations from the original kernel
-struct super_operations {
-        struct inode *(*alloc_inode) (struct super_block *sb);
-        void (*destroy_inode) (struct inode *);
-        void (*read_inode) (struct inode *);
-        void (*write_inode) (struct inode *, int);
-        void (*delete_inode) (struct inode *);
-        int (*sync_fs) (struct super_block *, int);
+// struct super_operations {
+//         struct inode *(*alloc_inode) (struct super_block *sb);
+//         void (*destroy_inode) (struct inode *);
+//         void (*read_inode) (struct inode *);
+//         void (*write_inode) (struct inode *, int);
+//         void (*delete_inode) (struct inode *);
+//         int (*sync_fs) (struct super_block *, int);
+// };
+struct dir_list //another way to make a bitmap?
+{
+  struct dir_list * next; //next pointer of the list (primarily for directories to be traversed)
+
+  int 						          total_i_nodes;
+	int 						          total_data_entries; // total data entries (length of list pretty much)
+	unsigned long 				    sb_blocksize; 		// in bytes
+	//struct super_operations 	s_op;  			/* superblock methods */
+	int inode_index; //index of the inode
+
+	char type;       // type of list
+	int length;      // length of list
+	int offset;      //file offset from root
+  char name[512];  //file name (meta data?)
 };
 
+struct indirect_pointer //first level pointers
+{
+
+	struct dir_list* index_pointer;
+	struct indirect_pointer *next;
+
+};
 struct sfs_state {
     FILE *logfile;
     char *diskfile;
