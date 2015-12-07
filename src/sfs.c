@@ -49,6 +49,8 @@
 void *sfs_init(struct fuse_conn_info *conn)
 {
 
+    sfs_State* state = SFS_DATA;
+    state->pid = getpid ();
     fprintf(stderr, "in bb-init\n");
     log_msg("\nsfs_init()\n");
     log_conn(conn);
