@@ -78,12 +78,13 @@ void *sfs_init(struct fuse_conn_info *conn)
     i_node_array[0].i_uid = uid;
     i_node_array[0].i_gid = guid;
 
+
     root = (struct dir_list*) malloc(sizeof(struct dir_list));
     root->next = NULL;
     root->type = 's'; //superblock
-    root->name = '/root';
     root->offset = 0; //initialize the start offset
     root->inode_index = 0;
+    strcpy(root->name, "/root");
 
     const char* path = state->pid_path;
     FILE *file = fopen (path, "w");
