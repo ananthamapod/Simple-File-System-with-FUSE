@@ -50,7 +50,8 @@
  // Initialize global variables to fold the main file system
  struct inode i_node_array[]; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
  struct dir_list *root;     ////root directory pointer Ananth this might need the word 'struct' infront of it - can you check please?
-
+ struct inode_bitmap * BitMap_for_iNode;
+ struct data_bitmap * BitMap_for_data; //might not need this because we're using a list of entries already (instead of map)
 
 void *sfs_init(struct fuse_conn_info *conn)
 {
@@ -72,12 +73,12 @@ void *sfs_init(struct fuse_conn_info *conn)
     //root_i_node.i_file_size_in_blocks = 0;
     //root_i_node.i_node = 1; //Let's initialize the first i_node here
 
-    i_node_array = malloc(512 * sizeOf(struct inode)); //Ananth does this require a different way of initialization?
+    i_node_array = malloc(512 * sizeof(struct inode)); //Ananth does this require a different way of initialization?
     i_node_array[0].data = NULL;
     i_node_array[0].i_uid = uid;
     i_node_array[0].i_gid = guid;
 
-    root = (struct dir_list*) malloc(sizeOf(struct dir_list));
+    root = (struct dir_list*) malloc(sizeof(struct dir_list));
     root->next = NULL;
     root->type = 's'; //superblock
     root->name = "/root";
@@ -96,7 +97,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 		      }
 
     fclose(file);
-    log_msg("Checking to see if this worked \n %d", root_i_node.i_uid);
+    log_msg("Checking to see if this worked \n %d", i_node_array[0].i_uid);
     return state;
 }
 
