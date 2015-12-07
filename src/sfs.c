@@ -96,7 +96,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 		      }
 
     fclose(file);
-    log_msg("Checking to see if this worked \n %d", root_i_node.i_uid);
+    log_msg("Checking to see if this worked \n %d", i_node_array[0].i_uid);
     return state;
 }
 
