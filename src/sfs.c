@@ -148,13 +148,39 @@ void sfs_destroy(void *userdata)
  */
 int sfs_getattr(const char *path, struct stat *statbuf)
 {
-    int retstat = 0;
-    char fpath[PATH_MAX];
 
+  /* int retstat = 0;
+    char fpath[PATH_MAX];
     log_msg("\nsfs_getattr(path=\"%s\", statbuf=0x%08x)\n",
 	  path, statbuf);
 
-    return retstat;
+    return retstat;*/
+    int path_len = strlen(path);
+    printf("%s: %s\n", __FUNCTION__, path);
+
+    if ( (path_len == 1) && path[0] == '/') {
+        statbuf->st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IRWXO;
+        statbuf->st_uid = 0;
+        statbuf->st_gid = 0;
+        statbuf->st_nlink = 1;
+        statbuf->st_ino = 0;
+    } else {
+     int i = 0;
+	  while(i<PATH_MAX){
+        int size;
+	//int block_count;
+        statbuf->st_mode = (S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO) & ~S_IXUSR & ~S_IXGRP & ~S_IXOTH;
+        statbuf->st_nlink = 1;
+        statbuf->st_ino = (ino_t)(dentry - root);
+        statbuf->st_uid = 0;
+         statbuf->st_gid = 0;
+        statbuf->st_size = size;
+        statbuf->st_blksize = dentry->sb_blocksize;              /* blocksize for filesystem I/O */
+     //  statbuf->st_blocks = block_count;               // number of 512B blocks allocated
+    }
+  }
+
+    return 0;
 }
 
 /**
@@ -302,10 +328,49 @@ int sfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse
 int sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	     struct fuse_file_info *fi)
 {
+  int num_traverses = offset / BLOCK_SIZE;
+       int current_block = root.inode_array[0];
+
+   short old_block = -1;
+   while (num_traverses > 0) {
+
+       old_block = current_block;
+       num_traverses--;
+   }
+
+   // write total number of bytes
+   int total_bytes_written = 0;
+   int block_offset = offset % BLOCK_SIZE;
+   while (total_bytes_written < size) {
+
+       // determine starting point in file
+       int start_index = BLOCK_SIZE * (1 + current_block) + block_offset;
+
+       // determine number of bytes to write
+       int num_to_write;
+       if (size - total_bytes_written > BLOCK_SIZE - block_offset) {
+           num_to_write = BLOCK_SIZE - block_offset;
+       } else {
+           num_to_write = size - total_bytes_written;
+       }
+
+
+       // update pointer to buffer
+       str += num_to_write;
+
+       // update offset
+       block_offset = 0;
+
+       // update block
+       old_block = current_block;
+
+       // update total bytes written
+       total_bytes_written += num_to_write;
+   }
     int retstat = 0;
     log_msg("\nsfs_write(path=\"%s\", buf=0x%08x, size=%d, offset=%lld, fi=0x%08x)\n",
 	    path, buf, size, offset, fi);
-    return retstat;
+    return total_bytes_written;
 }
 
 
