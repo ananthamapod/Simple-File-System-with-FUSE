@@ -174,7 +174,6 @@ int sfs_getattr(const char *path, struct stat *statbuf)
         statbuf->st_uid = 0;
          statbuf->st_gid = 0;
         statbuf->st_size = size;
-        statbuf->st_blksize = dentry->sb_blocksize;              /* blocksize for filesystem I/O */
      //  statbuf->st_blocks = block_count;               // number of 512B blocks allocated
     }
   }
@@ -279,7 +278,7 @@ int sfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse
 {
 
    // read bytes
-    int current_block = root.i_inode;
+   int current_block = root->inode_index;
     int num_bytes_read = 0;
     int block_offset = offset % BLOCK_SIZE;
     int total = 0;
@@ -329,7 +328,7 @@ int sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	     struct fuse_file_info *fi)
 {
   int num_traverses = offset / BLOCK_SIZE;
-  int current_block = root.i_inode;
+  int current_block = root->inode_index;
 
    short old_block = -1;
    while (num_traverses > 0) {
@@ -353,10 +352,6 @@ int sfs_write(const char *path, const char *buf, size_t size, off_t offset,
        } else {
            num_to_write = size - total_bytes_written;
        }
-
-
-       // update pointer to buffer
-       str += num_to_write;
 
        // update offset
        block_offset = 0;
