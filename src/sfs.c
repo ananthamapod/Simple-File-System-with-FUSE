@@ -171,7 +171,6 @@ int sfs_getattr(const char *path, struct stat *statbuf)
 	//int block_count;
         statbuf->st_mode = (S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO) & ~S_IXUSR & ~S_IXGRP & ~S_IXOTH;
         statbuf->st_nlink = 1;
-        statbuf->st_ino = (ino_t)(dentry - root);
         statbuf->st_uid = 0;
          statbuf->st_gid = 0;
         statbuf->st_size = size;
@@ -280,9 +279,10 @@ int sfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse
 {
 
    // read bytes
-    int current_block = root.inode_array[0];
+    int current_block = root.i_inode;
     int num_bytes_read = 0;
     int block_offset = offset % BLOCK_SIZE;
+    int total = 0;
     while (num_bytes_read < size) {
 
         // determine starting point in file
@@ -290,7 +290,7 @@ int sfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse
 
         // determine number of bytes to read
         int num_to_read;
-        if (zize - num_bytes_read > BLOCK_SIZE - block_offset) {
+        if (size - num_bytes_read > BLOCK_SIZE - block_offset) {
             num_to_read = BLOCK_SIZE - block_offset;
         } else {
             num_to_read = total - num_bytes_read;
@@ -329,7 +329,7 @@ int sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	     struct fuse_file_info *fi)
 {
   int num_traverses = offset / BLOCK_SIZE;
-       int current_block = root.inode_array[0];
+  int current_block = root.i_inode;
 
    short old_block = -1;
    while (num_traverses > 0) {
