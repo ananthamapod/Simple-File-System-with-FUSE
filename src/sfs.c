@@ -101,6 +101,7 @@ void *sfs_init(struct fuse_conn_info *conn)
     log_msg("Checking to see if this worked \n %d", i_node_array[0].i_uid);
     return state;
 }
+}
 
 /**
  * Clean up filesystem
@@ -112,6 +113,7 @@ void *sfs_init(struct fuse_conn_info *conn)
 void sfs_destroy(void *userdata)
 {
     log_msg("\nsfs_destroy(userdata=0x%08x)\n", userdata);
+    disk_close();
 }
 
 /** Get file attributes.
@@ -146,8 +148,14 @@ int sfs_getattr(const char *path, struct stat *statbuf)
 int sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
     int retstat = 0;
+    int fd;
+
+    fd = creat(path,mode);
+    fi->fh = fd;
     log_msg("\nsfs_create(path=\"%s\", mode=0%03o, fi=0x%08x)\n",
 	    path, mode, fi);
+
+
     return retstat;
 }
 
