@@ -87,21 +87,22 @@ void *sfs_init(struct fuse_conn_info *conn)
     strcpy(root->name, "/root");
 
     const char* path = state->pid_path;
-    FILE *file = fopen (path, "w");
-    //create tests for file
-    if (!file) {
-		        log_msg("Cannot open file %s", file);
-	             }
-    else {
-		        if (!fprintf(file, "%d\n", state->pid)) {
-			           log_msg("Can't write to pid %s",state->pid);
-		      }
-
-    fclose(file);
-    log_msg("Checking to see if this worked \n %d", i_node_array[0].i_uid);
+    //this was causing a file error - comment out we dont need this test anymore
+    // FILE *file = fopen (path, "w");
+    // //create tests for file
+    // if (!file) {
+		//         log_msg("Cannot open file %s", file);
+	  //            }
+    // else {
+		//         if (!fprintf(file, "%d\n", state->pid)) {
+		// 	           log_msg("Can't write to pid %s",state->pid);
+		//       }
+    //     }
+    // fclose(file);
+    // log_msg("Checking to see if this worked \n %d", i_node_array[0].i_uid);
     return state;
 }
-}
+
 
 /**
  * Clean up filesystem
@@ -228,11 +229,43 @@ int sfs_release(const char *path, struct fuse_file_info *fi)
  */
 int sfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
+
+   // read bytes
+    int current_block = root.inode_array[0];
+    int num_bytes_read = 0;
+    int block_offset = offset % BLOCK_SIZE;
+    while (num_bytes_read < size) {
+
+        // determine starting point in file
+        int start_index = BLOCK_SIZE * (1 + current_block) + block_offset;
+
+        // determine number of bytes to read
+        int num_to_read;
+        if (zize - num_bytes_read > BLOCK_SIZE - block_offset) {
+            num_to_read = BLOCK_SIZE - block_offset;
+        } else {
+            num_to_read = total - num_bytes_read;
+        }
+
+
+        // update pointer to buffer
+        buf += num_to_read;
+
+        // update offset
+        block_offset = 0;
+
+        // update block
+        //how to do this?
+
+        // update total bytes read
+        num_bytes_read += num_to_read;
+    }
+
     int retstat = 0;
     log_msg("\nsfs_read(path=\"%s\", buf=0x%08x, size=%d, offset=%lld, fi=0x%08x)\n",
 	    path, buf, size, offset, fi);
 
-    return retstat;
+    return num_bytes_read;
 }
 
 /** Write data to an open file
