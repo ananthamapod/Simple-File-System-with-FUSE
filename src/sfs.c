@@ -48,10 +48,33 @@
  */
 
  // Initialize global variables to fold the main file system
- struct inode i_node_array[]; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
+ struct inode *i_node_array; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
  struct dir_list *root;     ////root directory pointer Ananth this might need the word 'struct' infront of it - can you check please?
  struct inode_bitmap * BitMap_for_iNode;
  struct data_bitmap * BitMap_for_data; //might not need this because we're using a list of entries already (instead of map)
+
+ /***** struct stat *****/
+ /*dev_t     st_dev;         /* ID of device containing file */
+ /*ino_t     st_ino;         /* inode number */
+ /*mode_t    st_mode;        /* protection */
+ /*nlink_t   st_nlink;       /* number of hard links */
+ /*uid_t     st_uid;         /* user ID of owner */
+ /*gid_t     st_gid;         /* group ID of owner */
+ /*dev_t     st_rdev;        /* device ID (if special file) */
+ /*off_t     st_size;        /* total size, in bytes */
+ /*blksize_t st_blksize;     /* blocksize for filesystem I/O */
+ /*blkcnt_t  st_blocks;      /* number of 512B blocks allocated */
+
+ /***********************/
+
+ /*** fuse_conn_info ****/
+/*proto_major and proto_minor - Major and minor versions of the FUSE protocol (read-only).
+/*async_read - On entry, this is nonzero if asynchronous reads are supported. The initialization function can modify this as desired. Note that this field is duplicated by the FUSE_CAP_ASYNC_READ flag; asynchronous reads are controlled by the logical OR of the field and the flag. (Yes, this is a silly hangover from the past.)
+/*max_write - The maximum size of a write buffer. This can be modified by the init function. If it is set to less than 4096, it is increased to that value.
+/*max_readahead - The maximum readahead size. This can be modified by the init function.
+/*capable - The capabilities supported by the FUSE kernel module, encoded as bit flags (read-only).
+/*want - The capabilities desired by the FUSE client, encoded as bit flags.
+ */
 
 void *sfs_init(struct fuse_conn_info *conn)
 {
@@ -63,8 +86,6 @@ void *sfs_init(struct fuse_conn_info *conn)
     log_conn(conn);
     log_fuse_context(fuse_get_context());
     disk_open((SFS_DATA)->diskfile);
-
-
 
 
     int uid = getuid();
@@ -87,6 +108,7 @@ void *sfs_init(struct fuse_conn_info *conn)
     strcpy(root->name, "/root");
 
     const char* path = state->pid_path;
+<<<<<<< HEAD
     //this was causing a file error - comment out we dont need this test anymore
     // FILE *file = fopen (path, "w");
     // //create tests for file
@@ -115,6 +137,8 @@ void sfs_destroy(void *userdata)
 {
     log_msg("\nsfs_destroy(userdata=0x%08x)\n", userdata);
     disk_close();
+    free(i_node_array);
+    free(root);
 }
 
 /** Get file attributes.
@@ -358,26 +382,6 @@ int sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
 
     while(dir_entry = readdir(dir)) {
         // Stat struct, stores information about a file
-        /***** struct stat *****/
-        /*dev_t     st_dev;         /* ID of device containing file */
-        /*ino_t     st_ino;         /* inode number */
-        /*mode_t    st_mode;        /* protection */
-        /*nlink_t   st_nlink;       /* number of hard links */
-        /*uid_t     st_uid;         /* user ID of owner */
-        /*gid_t     st_gid;         /* group ID of owner */
-        /*dev_t     st_rdev;        /* device ID (if special file) */
-        /*off_t     st_size;        /* total size, in bytes */
-        /*blksize_t st_blksize;     /* blocksize for filesystem I/O */
-        /*blkcnt_t  st_blocks;      /* number of 512B blocks allocated */
-
-        /* Since Linux 2.6, the kernel supports nanosecond
-         precision for the following timestamp fields.
-         For the details before Linux 2.6, see NOTES. */
-
-        /*struct timespec st_atim;  /* time of last access */
-        /*struct timespec st_mtim;  /* time of last modification */
-        /*struct timespec st_ctim;  /* time of last status change */
-        /***********************/
         struct stat stat;
         // zeroes out all of the stat fields initially
         memset(&stat, 0, sizeof(stat));
