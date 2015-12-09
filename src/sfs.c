@@ -108,7 +108,6 @@ void *sfs_init(struct fuse_conn_info *conn)
     strcpy(root->name, "/root");
 
     const char* path = state->pid_path;
-<<<<<<< HEAD
     //this was causing a file error - comment out we dont need this test anymore
     // FILE *file = fopen (path, "w");
     // //create tests for file
