@@ -50,8 +50,6 @@
  // Initialize global variables to fold the main file system
  struct inode *i_node_array; //size will be initialized in init Ananth this might need the word 'struct' infront of it - can you check please?
  struct dir_list *root;     ////root directory pointer Ananth this might need the word 'struct' infront of it - can you check please?
- struct inode_bitmap * BitMap_for_iNode;
- struct data_bitmap * BitMap_for_data; //might not need this because we're using a list of entries already (instead of map)
 
  /***** struct stat *****/
  /*dev_t     st_dev;         /* ID of device containing file */
@@ -202,7 +200,8 @@ int sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
     fi->fh = fd;
     log_msg("\nsfs_create(path=\"%s\", mode=0%03o, fi=0x%08x)\n",
 	    path, mode, fi);
-
+    
+    
 
     return retstat;
 }
@@ -234,8 +233,22 @@ int sfs_unlink(const char *path)
 int sfs_open(const char *path, struct fuse_file_info *fi)
 {
     int retstat = 0;
+    int fd;
+
     log_msg("\nsfs_open(path\"%s\", fi=0x%08x)\n",
 	    path, fi);
+    
+    // Reset errno for useful function statuses
+    errno = 0;
+
+    fd = open(path, fi->flags);
+
+    if(fd == -1) {
+    	return -errno;
+    }
+
+    // Save file handle with fuse_file_info struct
+    fi->fh = fd;
 
     return retstat;
 }
@@ -259,6 +272,8 @@ int sfs_release(const char *path, struct fuse_file_info *fi)
     int retstat = 0;
     log_msg("\nsfs_release(path=\"%s\", fi=0x%08x)\n",
 	  path, fi);
+    
+    close(fi->fh);
 
     return retstat;
 }
@@ -431,18 +446,14 @@ int sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
     int retstat = 0;
     DIR *dir = (DIR *) fi->fh;
     struct dirent *dir_entry;
-    // No path provided, default to current directory
-    if(path[1] == '\0') {
-
-    }
-
-    //reset errno so we can accurately check status of function calls
+    
+    // Reset errno so we can accurately check status of function calls
     errno = 0;
 
     while(dir_entry = readdir(dir)) {
-        // Stat struct, stores information about a file
+        // Stat struct, stores information about the file/directory
         struct stat stat;
-        // zeroes out all of the stat fields initially
+        // Zeroes out all of the stat fields initially
         memset(&stat, 0, sizeof(stat));
 
         stat.st_ino = dir_entry->d_ino;
@@ -456,7 +467,7 @@ int sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offse
     }
 
     // Means readdir failed return error status
-    if(dir_entry == NULL && errno == EBADF) {
+    if(dir_entry == NULL && errno != 0) {
         retstat = -errno;
     }
 
